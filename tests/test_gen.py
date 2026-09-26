@@ -320,12 +320,12 @@ def test_vocab():
         assert v.decode(v.encode(ex.full_trace)) == list(ex.full_trace)
 
 
-@pytest.mark.parametrize("trace", ["compact", "full"])
+@pytest.mark.parametrize("trace", ["compact", "compact_rf", "full"])
 def test_encode_layouts(trace):
     for ex in examples(300, seed=6):
         v = Vocab(ex.p)
         T = ex.T
-        per_step = 1 if trace == "compact" else None
+        per_step = 1 if trace in gen.COMPACT else None
         cot = encode(ex, v, "cot", trace)
         assert encode(ex, v, "latent", trace, stage=0) == cot
         for mode in gen.MODES:
@@ -344,9 +344,25 @@ def test_encode_layouts(trace):
             text = [tok for tok, m in zip(v.decode(e.ids), e.targets) if m]
             rest = gen.trace_step_tokens(ex, trace)[s:]
             assert text == [tok for x in rest for tok in x] + (["ANS"] if rest else []) + [str(ex.answer), "EOS"]
-        assert len(encode(ex, v, "pause", trace).latent_pos) == (T if trace == "compact" else 2 * T * T + 1)
+        assert len(encode(ex, v, "pause", trace).latent_pos) == (T if trace in gen.COMPACT else 2 * T * T + 1)
 
 
 def test_kill_test_cells_fit_context():
     for c in gen.KILL_TEST_1_CELLS:
         assert gen.seq_len(c.T, "cot", "compact") <= gen.CONTEXT
+
+
+def test_result_first_trace_is_the_same_steps_result_first():
+    for ex in examples(2_000, seed=9):
+        rf, op_first = ex.compact_rf_trace, ex.compact_trace
+        assert len(rf) == 6 * ex.T
+        for t in range(ex.T):
+            a, op, b, eq, v, semi = op_first[6 * t: 6 * t + 6]
+            assert rf[6 * t: 6 * t + 6] == (v, "=", a, op, b, ";")
+            assert rf[6 * t] == str(ex.step_values[t])  # the token that starts step t is its result
+        assert rf[-6] == str(ex.answer)
+    v = Vocab(7)
+    ex = gen.random_example(7, "chain", 4, np.random.default_rng(0))
+    for s in range(5):
+        a, b = encode(ex, v, "latent", "compact", s), encode(ex, v, "latent", "compact_rf", s)
+        assert a.latent_pos == b.latent_pos and len(a.ids) == len(b.ids) and a.ans_pos == b.ans_pos

@@ -10,7 +10,8 @@ Schedule
   * latent: curriculum stages s = 0..T (stage s replaces the first s trace steps with latents;
     stage 0 is plain CoT). Each stage s < T runs --epochs_per_stage epochs (plan: 3), or advances
     early once validation accuracy has stopped improving (--plateau_patience epochs without a
-    --plateau_delta gain). The final stage runs --final_epochs. The optimizer is re-created at
+    --plateau_delta gain); --fixed_stages turns early advancing off (kill test 2 uses it). The
+    final stage runs --final_epochs. The optimizer is re-created at
     every stage switch (Coconut), and each stage gets its own warmup + cosine schedule.
   * pause: the final-stage slot count with no feedback, loss on the answer, for as many epochs as
     the latent curriculum uses in total (unless --epochs is given), so the two see equal training.
@@ -61,6 +62,7 @@ def parse_args(argv=None):
     a("--mode", choices=MODES, required=True)
     a("--trace", choices=TRACES, default="compact")
     a("--feedback", choices=FEEDBACK, default="base")
+    a("--latent_scale", default="1", help="global scalar on fed-back latents: a number, or 'invsqrt_d' for 1/sqrt(d_model)")
     a("--layers", type=int, default=2)
     a("--d_model", type=int, default=256)
     a("--heads", type=int, default=4)
@@ -73,6 +75,7 @@ def parse_args(argv=None):
     a("--epochs", type=int, default=None, help="direct/cot (default 30); pause (default: latent total)")
     a("--epochs_per_stage", type=int, default=3)
     a("--final_epochs", type=int, default=6)
+    a("--fixed_stages", action="store_true", help="every intermediate stage runs all its epochs (no early advance)")
     a("--plateau_patience", type=int, default=1)
     a("--plateau_delta", type=float, default=0.005)
     a("--seed", type=int, default=0)
@@ -97,12 +100,19 @@ def stage_plan(args) -> list:
         return [(None, args.epochs or 30, False)]
     if args.mode == "pause":
         return [(None, args.epochs or latent_total, False)]
-    return [(s, args.epochs_per_stage, True) for s in range(args.T)] + [(args.T, args.final_epochs, False)]
+    early = not args.fixed_stages
+    return [(s, args.epochs_per_stage, early) for s in range(args.T)] + [(args.T, args.final_epochs, False)]
+
+
+def latent_scale(args) -> float:
+    return 1 / math.sqrt(args.d_model) if str(args.latent_scale) == "invsqrt_d" else float(args.latent_scale)
 
 
 def run_dir(args) -> Path:
     cell = Cell(args.shape, args.T, args.p)
     fb = f"-{args.feedback}" if args.mode == "latent" else ""
+    if args.mode == "latent" and latent_scale(args) != 1.0:
+        fb += "-a" + ("isd" if str(args.latent_scale) == "invsqrt_d" else f"{latent_scale(args):g}")
     return (Path(args.out) / cell.name /
             f"{args.mode}-{args.trace}{fb}-L{args.layers}-D{args.d_model}-lr{args.lr:g}-s{args.seed}{args.tag}")
 
@@ -215,7 +225,8 @@ def train(args) -> dict:
     if gen.seq_len(args.T, args.mode, args.trace) > 256:
         raise SystemExit(f"{cell.name} {args.mode}/{args.trace} is longer than the context (256)")
     cfg = ModelConfig(vocab_size=len(vocab), n_layer=args.layers, n_head=args.heads, d_model=args.d_model,
-                      feedback=args.feedback if args.mode == "latent" else "base")
+                      feedback=args.feedback if args.mode == "latent" else "base",
+                      latent_scale=latent_scale(args) if args.mode == "latent" else 1.0)
     model = TinyGPT(cfg).to(device)
     val_sub = splits.val.balanced_head(args.eval_n)  # exactly answer-balanced, so chance is 1/p
     steps_per_epoch = math.ceil(args.epoch_size / args.batch)

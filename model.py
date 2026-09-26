@@ -5,6 +5,10 @@ Feedback configs:
   base  the fed-back vector is the final-layer hidden state after the last LayerNorm (ln_f).
   prj   the fed-back vector is Prj(h) = LayerNorm(W2 GeLU(W1 h)) applied to that hidden state.
   prj + round is the prj model with round_log applied at inference, i.e. prj plus a hook.
+latent_scale: a LayerNorm output has norm about sqrt(d), while the token embeddings it replaces
+have norm about 1, so an unscaled latent swamps its position. One fixed global scalar
+(1/sqrt(d_model)) puts it on the embedding scale without discarding per-latent magnitude.
+The scaled vector is the latent (what hooks see and what is fed back).
 prj matches the theorem's feedback projection only. The backbone is a standard pre-LayerNorm
 GPT-2 transformer, whereas the theorem's construction has no LayerNorm inside the blocks.
 
@@ -46,6 +50,7 @@ class ModelConfig:
     feedback: str = "base"  # "base" | "prj"
     d_prj: Optional[int] = None  # hidden width of Prj; default 4 * d_model
     tie_embeddings: bool = True  # GPT-2 ties the input embedding and the output head
+    latent_scale: float = 1.0  # one fixed global scalar on every fed-back vector (1.0 = none)
 
 
 class CausalSelfAttention(nn.Module):
@@ -140,7 +145,8 @@ class TinyGPT(nn.Module):
 
     def feedback(self, h):
         """The vector fed back into the next latent slot."""
-        return h if self.prj is None else self.prj(h)
+        v = h if self.prj is None else self.prj(h)
+        return v if self.cfg.latent_scale == 1.0 else v * self.cfg.latent_scale
 
 
 # --------------------------------------------------------------------------- batches
@@ -262,4 +268,3 @@ def identity_hook(t, h, batch_idx):
 def round_log(h):
     """The theorem's rounding for the optional prj+round ablation. Definition still needed."""
     raise NotImplementedError("round_log: add the theorem's rounding rule before running prj+round")
-

@@ -10,7 +10,9 @@ Conventions (read these before using the step indices anywhere else)
   ``Source('step', t)``.
 * Expressions are fully parenthesised, root included: ``( ( 3 + 1 ) * ( 0 - 4 ) )``.
   An expression with k operators is 4k+1 tokens.
-* Compact trace: per step ``a op b = v ;`` (6 tokens, 6T total).
+* Compact trace: per step ``a op b = v ;`` (6 tokens, 6T total). Result-first compact trace
+  (``compact_rf``): per step ``v = a op b ;``, same tokens reordered so the state that begins a
+  step predicts its result; adopted after the operand-first latent pilots failed (see the plan).
 * Full trace (the theorem's): T(E0) = E0 = E1 = ... = ET EOT. E0 is the question (prompt);
   the generated suffix, stored as ``full_trace``, is ``= E1 = E2 ... = ET EOT``. Step t's
   line is ``= E_{t+1}``; the last line also carries EOT. Generated trace symbols: p values,
@@ -234,6 +236,16 @@ class Example:
         return tuple(out)
 
     @cached_property
+    def compact_rf_trace(self) -> tuple:
+        """Result-first compact trace: per step ``v = a op b ;``, so the state that starts a step
+        predicts its result (the operand-first ``a op b = v ;`` predicts an operand there)."""
+        out = []
+        for t in range(self.T):
+            a, b = self.operand_values(t)
+            out += [str(self.step_values[t]), "=", str(a), OPS[self.ops[t]], str(b), ";"]
+        return tuple(out)
+
+    @cached_property
     def full_trace_lines(self) -> tuple:
         lines = [["="] + self.render(reduced_upto=t) for t in range(self.T)]
         lines[-1].append("EOT")
@@ -362,12 +374,13 @@ class Encoded(NamedTuple):
 
 
 MODES = ("direct", "cot", "latent", "pause")
-TRACES = ("compact", "full")
+TRACES = ("compact", "compact_rf", "full")
+COMPACT = ("compact", "compact_rf")  # one latent per reduction, 6 tokens per step
 
 
 def trace_step_tokens(ex: Example, trace: str) -> list:
-    if trace == "compact":
-        c = ex.compact_trace
+    if trace in COMPACT:
+        c = ex.compact_trace if trace == "compact" else ex.compact_rf_trace
         return [c[6 * t: 6 * t + 6] for t in range(ex.T)]
     if trace == "full":
         return list(ex.full_trace_lines)
@@ -390,7 +403,7 @@ def encode(ex: Example, vocab: Vocab, mode: str, trace: str = "compact", stage: 
         s = ex.T if (stage is None or mode == "pause") else stage
         if not 0 <= s <= ex.T:
             raise ValueError(f"stage {s} outside 0..{ex.T}")
-        n_slots = s if trace == "compact" else sum(len(x) for x in steps[:s])
+        n_slots = s if trace in COMPACT else sum(len(x) for x in steps[:s])
         text = [] if mode == "pause" else [tok for x in steps[s:] for tok in x]
     else:
         raise ValueError(mode)
@@ -403,7 +416,8 @@ def encode(ex: Example, vocab: Vocab, mode: str, trace: str = "compact", stage: 
 
 def seq_len(T: int, mode: str, trace: str = "compact") -> int:
     base = (4 * T + 1) + 5  # question + BOS SEP ANS answer EOS
-    extra = {"compact": {"direct": 0, "cot": 6 * T, "latent": T, "pause": T},
+    per_step = {"direct": 0, "cot": 6 * T, "latent": T, "pause": T}
+    extra = {"compact": per_step, "compact_rf": per_step,
              "full": {"direct": 0, "cot": 2 * T * T + 1, "latent": 2 * T * T + 1, "pause": 2 * T * T + 1}}
     return base + extra[trace][mode]
 
@@ -669,6 +683,7 @@ def _show(cell, seed):
                              for t, s in enumerate(ex.steps)], sep="\n  ")
     print("consumer     ", ex.consumer)
     print("compact trace", " ".join(ex.compact_trace))
+    print("result-first ", " ".join(ex.compact_rf_trace))
     print("full trace   ", " ".join(ex.full_trace), f"({len(ex.full_trace)} tokens)")
     for mode in MODES:
         for tr in TRACES:

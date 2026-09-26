@@ -258,15 +258,18 @@ def test_greedy_reports_missing_ans():
     b["ans_id"] = -123  # no generated token can match, as for a model that never emits ANS
     pred, _ = greedy_answer(m, b, "cot")
     assert pred.tolist() == [-1] * 4
-    
-def test_return_fed_exposes_actual_intervention():
-    m = small_model(5)
-    b, _ = batch_for(Cell("balanced", 3, 5), 8, "latent")
 
+
+def test_latent_scale_is_one_global_scalar():
+    b, _ = batch_for(Cell("balanced", 3, 5), 8, "latent", "compact_rf")
+    m1 = small_model(5, "base")
+    m2 = small_model(5, "base", latent_scale=0.125)
+    m2.load_state_dict(m1.state_dict())
     with torch.no_grad():
-        logits, pre, fed = forward_latent(
-            m, b, hook=zero_hook, return_fed=True
-        )
-
-    assert torch.equal(fed, torch.zeros_like(fed))
-    assert not torch.equal(pre, fed)
+        _, h = m1(b["ids"])
+        torch.testing.assert_close(m2.feedback(h), 0.125 * m1.feedback(h), atol=0, rtol=0)
+        l0, z0 = forward_latent(m2, b)
+        l1, z1 = forward_latent(m2, b, hook=identity_hook)
+    assert torch.equal(l0, l1) and torch.equal(z0, z1)
+    norms = z0.norm(dim=-1)
+    assert norms.std() > 0  # per-latent magnitudes are kept, unlike per-latent normalization
