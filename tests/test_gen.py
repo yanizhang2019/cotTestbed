@@ -194,6 +194,22 @@ def test_answer_balance():
         assert np.abs(freq - 1 / p).max() < 0.01, freq
 
 
+def test_split_prefixes_are_representative():
+    """Balancing fills answer 0 first; after the shuffle every prefix is near-balanced, and
+    balanced_head is exactly balanced."""
+    for cell in (Cell("balanced", 3, 5), Cell("chain", 8, 7)):
+        s = make_splits(cell)
+        p = cell.p
+        for b in (s.val, s.test):
+            for n in (200, 1000):
+                freq = np.bincount(b.answer[:n], minlength=p) / n
+                assert np.abs(freq - 1 / p).max() < 4 * np.sqrt((1 / p) * (1 - 1 / p) / n), (cell.name, n, freq)
+        h = s.val.balanced_head(1000)
+        counts = np.bincount(h.answer, minlength=p)
+        assert counts.min() == counts.max() == 1000 // p
+        assert set(h.keys()) <= set(s.val.keys())
+
+
 def test_enumeration_is_a_bijection():
     for cell in (Cell("balanced", 3, 3), Cell("random", 3, 3), Cell("chain", 2, 5)):
         b = gen.decode_index(cell, np.arange(cell.space_size))

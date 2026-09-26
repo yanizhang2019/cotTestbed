@@ -433,6 +433,12 @@ class Batch:
     def take(self, idx) -> "Batch":
         return Batch(self.cell, self.rank[idx], self.ops[idx], self.leaves[idx], self.answer[idx])
 
+    def balanced_head(self, n: int) -> "Batch":
+        """The first n // p rows of each answer class, in their original order (exactly balanced)."""
+        p = self.cell.p
+        keep = np.sort(np.concatenate([np.flatnonzero(self.answer == a)[: n // p] for a in range(p)]))
+        return self.take(keep)
+
     def example(self, i: int) -> Example:
         c = self.cell
         return Example(c.p, skeleton(c.shape, c.T, int(self.rank[i])),
@@ -622,6 +628,10 @@ def make_splits(cell: Cell, seed: int = 0) -> Splits:
         info = dict(regime="sampled", space=cell.space_size,
                     train_distinct=cell.space_size - len(val) - len(test),
                     train_if_downsampled=None, frac_answer0=float((probe == 0).mean()))
+    # Balancing fills the over-represented answer (0) first, so the head of each split would be
+    # enriched for it. Shuffle so any prefix is representative.
+    val = val.take(_rng(seed, cell, 6).permutation(len(val)))
+    test = test.take(_rng(seed, cell, 7).permutation(len(test)))
     heldout = frozenset(val.keys()) | frozenset(test.keys())
     info.update(n_val=len(val), n_test=len(test), keep=info["train_distinct"] >= MIN_TRAIN)
     return Splits(cell, seed, val, test, heldout, by_answer, info)
