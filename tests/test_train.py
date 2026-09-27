@@ -35,12 +35,15 @@ def test_lr_schedule():
 
 def test_stage_plan(tmp_path):
     a = args_for(tmp_path, mode="latent", epochs_per_stage=3, final_epochs=6)
-    assert train.stage_plan(a) == [(0, 3, True), (1, 3, True), (2, 3, True), (3, 6, False)]
+    assert train.stage_plan(a) == [(0, 3, "plateau"), (1, 3, "plateau"), (2, 3, "plateau"), (3, 6, "final")]
+    a.mastery_threshold = 0.98
+    assert train.stage_plan(a) == [(0, 12, "mastery"), (1, 12, "mastery"), (2, 12, "mastery"), (3, 6, "final")]
+    a.mastery_threshold = None
     a.mode, a.epochs = "pause", None
-    assert train.stage_plan(a) == [(None, 3 * 3 + 6, False)]  # same total epochs as latent
+    assert train.stage_plan(a) == [(None, 3 * 3 + 6, "final")]  # same total epochs as latent
     a.mode = "cot"
     a.epochs = None
-    assert train.stage_plan(a) == [(None, 30, False)]
+    assert train.stage_plan(a) == [(None, 30, "final")]
 
 
 def test_weight_decay_only_on_matrices(tmp_path):
@@ -155,7 +158,7 @@ def test_kt1_report(tmp_path, capsys):
 
 def test_fixed_stages_never_advance_early(tmp_path):
     a = args_for(tmp_path, mode="latent", epochs_per_stage=2, final_epochs=1, fixed_stages=True, lr=0.0)
-    assert train.stage_plan(a) == [(0, 2, False), (1, 2, False), (2, 2, False), (3, 1, False)]
+    assert train.stage_plan(a) == [(0, 2, "fixed"), (1, 2, "fixed"), (2, 2, "fixed"), (3, 1, "final")]
     res = train.train(a)  # lr 0 plateaus immediately, but every stage still runs all its epochs
     assert [s["epochs"] for s in res["stages"]] == [2, 2, 2, 1] and res["epochs_total"] == 7
 
@@ -260,3 +263,61 @@ def test_kt1_reuses_direct_runs_across_traces(tmp_path, capsys):
     fake(new, "chain", 8, "cot", "compact_rf", 0.95)  # no direct run for chain T=8: row shows missing
     stats.kt1(old, new)
     assert "missing" in capsys.readouterr().out
+
+
+def _scripted_evaluate(monkeypatch, accs):
+    """Make every per-epoch validation score come from accs (in order); later calls score 1.0."""
+    it = iter(accs)
+
+    def fake(model, exprs, *a, **k):
+        acc = next(it, 1.0)
+        n = 200
+        return np.arange(n) < round(acc * n)
+    monkeypatch.setattr(train, "evaluate", fake)
+
+
+def _mastery_args(tmp_path, **kw):
+    return args_for(tmp_path, mode="latent", mastery_threshold=0.98, mastery_patience=2, min_epochs_per_stage=3,
+                    max_epochs_per_stage=5, final_epochs=2, **kw)
+
+
+def test_mastery_advances_only_after_consecutive_mastered_epochs(tmp_path, monkeypatch):
+    # stage 0: 0.99 0.50 0.99 0.99 -> streak resets at epoch 2, mastered after epoch 4
+    # stage 1: 1.0 1.0 1.0 -> min 3 epochs, mastered after epoch 3
+    # stage 2: 0.99 0.99 0.99 -> mastered after epoch 3; then 2 final epochs
+    _scripted_evaluate(monkeypatch, [0.99, 0.50, 0.99, 0.99, 1.0, 1.0, 1.0, 0.99, 0.99, 0.99, 0.9, 0.95])
+    res = train.train(_mastery_args(tmp_path))
+    assert [(s["stage"], s["epochs"], s.get("mastered")) for s in res["stages"]] == \
+        [(0, 4, True), (1, 3, True), (2, 3, True), (3, 2, None)]
+    assert res["curriculum_failed_stage"] is None and res["epochs_total"] == 12
+    assert res["best"]["stage"] == 3 and res["best"]["epoch"] == 1  # 0.95 beat 0.90
+
+
+def test_unmastered_stage_stops_the_run(tmp_path, monkeypatch):
+    # stage 0 mastered after 3; stage 1 hovers at 0.97 for all 5 epochs -> stop, record stage 1
+    _scripted_evaluate(monkeypatch, [1.0, 1.0, 1.0] + [0.97] * 5)
+    res = train.train(_mastery_args(tmp_path))
+    assert res["curriculum_failed_stage"] == 1
+    assert [(s["stage"], s["epochs"], s["mastered"]) for s in res["stages"]] == [(0, 3, True), (1, 5, False)]
+    assert res["epochs_total"] == 8 and res["best"]["curriculum_failed"] is True
+    assert "zero_val_acc" in res and (train.run_dir(_mastery_args(tmp_path)) / "best.pt").exists()
+
+
+def test_kt2_reuses_directs_and_reports_curriculum_stops(tmp_path, capsys):
+    r1, r2 = tmp_path / "r1", tmp_path / "r2"
+    r1.mkdir(), r2.mkdir()
+    for s in range(3):
+        _fake_kt2(r1, "chain", 8, "direct", s, 0.23)
+        _fake_kt2(r2, "chain", 8, "latent", s, 0.99, 0.15)
+        _fake_kt2(r2, "chain", 8, "pause", s, 0.23)
+        _fake_kt2(r2, "balanced", 7, "latent", s, 0.99 if s else 0.2, 0.15)
+        _fake_kt2(r2, "balanced", 7, "pause", s, 0.2)
+        _fake_kt2(r1, "balanced", 7, "direct", s, 0.2)
+    stopped = r2 / "balanced7latent0" / "results.json"
+    r = json.loads(stopped.read_text())
+    r["curriculum_failed_stage"] = 4
+    stopped.write_text(json.dumps(r))
+    assert stats.kt2(r2) is False  # no direct runs in r2: incomplete
+    assert stats.kt2(r2, direct_from=[r1]) is False  # balanced mean 0.727 < 0.90
+    out = capsys.readouterr().out
+    assert "seed 0 at stage 4" in out

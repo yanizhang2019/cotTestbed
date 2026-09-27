@@ -10,8 +10,13 @@ Schedule
   * latent: curriculum stages s = 0..T (stage s replaces the first s trace steps with latents;
     stage 0 is plain CoT). Each stage s < T runs --epochs_per_stage epochs (plan: 3), or advances
     early once validation accuracy has stopped improving (--plateau_patience epochs without a
-    --plateau_delta gain); --fixed_stages turns early advancing off (kill test 2 uses it). The
-    final stage runs --final_epochs. The optimizer is re-created at
+    --plateau_delta gain); --fixed_stages turns early advancing off (kill test 2 uses it).
+    --mastery_threshold instead gates each intermediate stage on mastery (kill-test-2 retry 2):
+    at least --min_epochs_per_stage, advance after --mastery_patience consecutive epochs at or
+    above the threshold, stop the run if a stage is not mastered within --max_epochs_per_stage
+    (results.json records curriculum_failed_stage; the model is then scored all-latent as it
+    stands). Each stage's cosine schedule spans its maximum epochs. The final stage runs
+    --final_epochs. The optimizer is re-created at
     every stage switch (Coconut), and each stage gets its own warmup + cosine schedule.
   * pause: the final-stage slot count with no feedback, loss on the answer, for as many epochs as
     the latent curriculum uses in total (unless --epochs is given), so the two see equal training.
@@ -76,6 +81,11 @@ def parse_args(argv=None):
     a("--epochs_per_stage", type=int, default=3)
     a("--final_epochs", type=int, default=6)
     a("--fixed_stages", action="store_true", help="every intermediate stage runs all its epochs (no early advance)")
+    a("--mastery_threshold", type=float, default=None,
+      help="mastery-gated curriculum: advance an intermediate stage only once val >= this")
+    a("--mastery_patience", type=int, default=2, help="consecutive mastered epochs needed to advance")
+    a("--min_epochs_per_stage", type=int, default=3)
+    a("--max_epochs_per_stage", type=int, default=12, help="an unmastered stage at this point stops the run")
     a("--plateau_patience", type=int, default=1)
     a("--plateau_delta", type=float, default=0.005)
     a("--seed", type=int, default=0)
@@ -94,14 +104,21 @@ def parse_args(argv=None):
 
 
 def stage_plan(args) -> list:
-    """[(stage or None, epochs, may_advance_early)]"""
+    """[(stage or None, max epochs, rule)]; rule is how the stage ends:
+    "final" (runs all its epochs; model selection happens here), "fixed" (all epochs),
+    "plateau" (may advance early once validation stops improving) or "mastery" (advances once
+    validation >= --mastery_threshold for --mastery_patience consecutive epochs, after at least
+    --min_epochs_per_stage; an unmastered stage after --max_epochs_per_stage stops the run)."""
     latent_total = args.epochs_per_stage * args.T + args.final_epochs
     if args.mode in ("direct", "cot"):
-        return [(None, args.epochs or 30, False)]
+        return [(None, args.epochs or 30, "final")]
     if args.mode == "pause":
-        return [(None, args.epochs or latent_total, False)]
-    early = not args.fixed_stages
-    return [(s, args.epochs_per_stage, early) for s in range(args.T)] + [(args.T, args.final_epochs, False)]
+        return [(None, args.epochs or latent_total, "final")]
+    if args.mastery_threshold is not None:
+        mid = [(s, args.max_epochs_per_stage, "mastery") for s in range(args.T)]
+    else:
+        mid = [(s, args.epochs_per_stage, "fixed" if args.fixed_stages else "plateau") for s in range(args.T)]
+    return mid + [(args.T, args.final_epochs, "final")]
 
 
 def latent_scale(args) -> float:
@@ -240,8 +257,10 @@ def train(args) -> dict:
     stages_run: list = []
     step, t0 = 0, time.time()
 
-    for si, (stage, epochs, may_advance) in enumerate(plan):
+    failed_stage = None
+    for si, (stage, epochs, rule) in enumerate(plan):
         is_final = si == len(plan) - 1
+        streak, mastered = 0, False
         opt = make_optimizer(model, args)  # reset at every stage switch
         total = epochs * steps_per_epoch
         stream = TrainStream(splits, vocab, args.mode, args.trace, stage, args.batch, args.seed)
@@ -289,11 +308,25 @@ def train(args) -> dict:
                 stage_best, since_best = acc, 0
             else:
                 since_best += 1
-            if may_advance and since_best >= args.plateau_patience and ep + 1 < epochs:
+            if rule == "plateau" and since_best >= args.plateau_patience and ep + 1 < epochs:
                 print(f"  stage {stage} plateaued after {ep + 1} epochs; advancing")
                 break
-        stages_run.append(dict(stage=stage, epochs=ep + 1, last_val=acc))
+            if rule == "mastery":
+                streak = streak + 1 if acc >= args.mastery_threshold else 0
+                if ep + 1 >= args.min_epochs_per_stage and streak >= args.mastery_patience:
+                    mastered = True
+                    print(f"  stage {stage} mastered after {ep + 1} epochs; advancing")
+                    break
+        stages_run.append(dict(stage=stage, epochs=ep + 1, last_val=acc,
+                               **({"mastered": mastered} if rule == "mastery" else {})))
         del it, loader
+        if rule == "mastery" and not mastered:
+            failed_stage = stage
+            print(f"  stage {stage} not mastered within {epochs} epochs; stopping this run")
+            break
+    if failed_stage is not None:  # no final stage was reached: score the model as it stands, all-latent
+        best = dict(acc=None, stage=failed_stage, epoch=ep, curriculum_failed=True)
+        torch.save(dict(model=model.state_dict(), cfg=vars(cfg), args=vars(args)), out / "best.pt")
     torch.save(dict(model=model.state_dict(), cfg=vars(cfg), args=vars(args)), out / "last.pt")
     log.close()
 
@@ -309,6 +342,7 @@ def train(args) -> dict:
                stages=stages_run, best=best, val_acc=float(val_ok.mean()), n_val=len(val_ok),
                still_improving=bool(len(final_curve) >= 5 and
                                     final_curve[-1] - max(final_curve[: int(0.8 * len(final_curve))]) > 0.01),
+               curriculum_failed_stage=failed_stage,
                split_fingerprint=splits.fingerprint(), args=dict(vars(args)))
     if args.mode == "latent":  # kill test 2's necessity check, on validation (zeroing has nothing to fit)
         zero_ok = evaluate(model, splits.val, vocab, "latent", args.trace, stage, device, args.eval_batch, amp,

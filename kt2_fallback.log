@@ -1,0 +1,289 @@
+=== [1] balanced T=3 seed=0 latent (22:50)
+runs/kt2_retry1/balanced_T3_p7/latent-compact_rf-base-aisd-L4-D256-lr0.0003-s0 | 3,230,464 params | cuda | stages [(0, 6), (1, 6), (2, 6), (3, 6)]
+  stage 0 epoch 0  val 1.0000  step 391  0.1 min
+  stage 0 epoch 1  val 0.9964  step 782  0.1 min
+  stage 0 epoch 2  val 1.0000  step 1173  0.2 min
+  stage 0 epoch 3  val 1.0000  step 1564  0.2 min
+  stage 0 epoch 4  val 1.0000  step 1955  0.3 min
+  stage 0 epoch 5  val 1.0000  step 2346  0.3 min
+  stage 1 epoch 0  val 0.9700  step 2737  0.4 min
+  stage 1 epoch 1  val 0.9990  step 3128  0.4 min
+  stage 1 epoch 2  val 1.0000  step 3519  0.5 min
+  stage 1 epoch 3  val 1.0000  step 3910  0.6 min
+  stage 1 epoch 4  val 1.0000  step 4301  0.6 min
+  stage 1 epoch 5  val 1.0000  step 4692  0.7 min
+  stage 2 epoch 0  val 0.9986  step 5083  0.8 min
+  stage 2 epoch 1  val 0.9994  step 5474  0.9 min
+  stage 2 epoch 2  val 1.0000  step 5865  1.0 min
+  stage 2 epoch 3  val 1.0000  step 6256  1.1 min
+  stage 2 epoch 4  val 1.0000  step 6647  1.2 min
+  stage 2 epoch 5  val 1.0000  step 7038  1.3 min
+  stage 3 epoch 0  val 0.9864  step 7429  1.4 min
+  stage 3 epoch 1  val 0.9990  step 7820  1.5 min
+  stage 3 epoch 2  val 1.0000  step 8211  1.6 min
+  stage 3 epoch 3  val 1.0000  step 8602  1.7 min
+  stage 3 epoch 4  val 1.0000  step 8993  1.8 min
+  stage 3 epoch 5  val 1.0000  step 9384  1.9 min
+done runs/kt2_retry1/balanced_T3_p7/latent-compact_rf-base-aisd-L4-D256-lr0.0003-s0: val 1.0000 zero-latent val 0.1429
+=== [1] balanced T=3 seed=0 pause, 24 epochs (22:52)
+runs/kt2_retry1/balanced_T3_p7/pause-compact_rf-L4-D256-lr0.0003-s0 | 3,230,464 params | cuda | stages [(None, 24)]
+  stage None epoch 0  val 0.1951  step 391  0.1 min
+  stage None epoch 1  val 0.1979  step 782  0.1 min
+  stage None epoch 2  val 0.1931  step 1173  0.1 min
+  stage None epoch 3  val 0.1987  step 1564  0.2 min
+  stage None epoch 4  val 0.1975  step 1955  0.2 min
+  stage None epoch 5  val 0.1905  step 2346  0.3 min
+  stage None epoch 6  val 0.1921  step 2737  0.3 min
+  stage None epoch 7  val 0.1933  step 3128  0.4 min
+  stage None epoch 8  val 0.1971  step 3519  0.4 min
+  stage None epoch 9  val 0.1967  step 3910  0.5 min
+  stage None epoch 10  val 0.1955  step 4301  0.5 min
+  stage None epoch 11  val 0.1983  step 4692  0.6 min
+  stage None epoch 12  val 0.1951  step 5083  0.6 min
+  stage None epoch 13  val 0.1981  step 5474  0.6 min
+  stage None epoch 14  val 0.1947  step 5865  0.7 min
+  stage None epoch 15  val 0.1987  step 6256  0.7 min
+  stage None epoch 16  val 0.2019  step 6647  0.8 min
+  stage None epoch 17  val 0.2151  step 7038  0.8 min
+  stage None epoch 18  val 0.2453  step 7429  0.9 min
+  stage None epoch 19  val 0.2515  step 7820  0.9 min
+  stage None epoch 20  val 0.2615  step 8211  0.9 min
+  stage None epoch 21  val 0.2585  step 8602  1.0 min
+  stage None epoch 22  val 0.2559  step 8993  1.0 min
+  stage None epoch 23  val 0.2607  step 9384  1.1 min
+done runs/kt2_retry1/balanced_T3_p7/pause-compact_rf-L4-D256-lr0.0003-s0: val 0.2630
+=== [1] balanced T=3 seed=0 direct (22:53)
+runs/kt2_retry1/balanced_T3_p7/direct-compact_rf-L4-D256-lr0.0003-s0 | 3,230,464 params | cuda | stages [(None, 30)]
+  stage None epoch 0  val 0.1851  step 391  0.1 min
+  stage None epoch 1  val 0.1963  step 782  0.1 min
+  stage None epoch 2  val 0.1969  step 1173  0.1 min
+  stage None epoch 3  val 0.1953  step 1564  0.2 min
+  stage None epoch 4  val 0.2245  step 1955  0.2 min
+  stage None epoch 5  val 0.2913  step 2346  0.3 min
+  stage None epoch 6  val 0.3125  step 2737  0.3 min
+  stage None epoch 7  val 0.3143  step 3128  0.4 min
+  stage None epoch 8  val 0.3131  step 3519  0.4 min
+  stage None epoch 9  val 0.3197  step 3910  0.4 min
+  stage None epoch 10  val 0.3207  step 4301  0.5 min
+  stage None epoch 11  val 0.3201  step 4692  0.5 min
+  stage None epoch 12  val 0.3179  step 5083  0.6 min
+  stage None epoch 13  val 0.3105  step 5474  0.6 min
+  stage None epoch 14  val 0.3209  step 5865  0.7 min
+  stage None epoch 15  val 0.3191  step 6256  0.7 min
+  stage None epoch 16  val 0.3201  step 6647  0.7 min
+  stage None epoch 17  val 0.3167  step 7038  0.8 min
+  stage None epoch 18  val 0.3301  step 7429  0.8 min
+  stage None epoch 19  val 0.3171  step 7820  0.9 min
+  stage None epoch 20  val 0.3143  step 8211  0.9 min
+  stage None epoch 21  val 0.3111  step 8602  1.0 min
+  stage None epoch 22  val 0.3139  step 8993  1.0 min
+  stage None epoch 23  val 0.3221  step 9384  1.0 min
+  stage None epoch 24  val 0.3153  step 9775  1.1 min
+  stage None epoch 25  val 0.3131  step 10166  1.1 min
+  stage None epoch 26  val 0.3177  step 10557  1.2 min
+  stage None epoch 27  val 0.3175  step 10948  1.2 min
+  stage None epoch 28  val 0.3157  step 11339  1.2 min
+  stage None epoch 29  val 0.3075  step 11730  1.3 min
+done runs/kt2_retry1/balanced_T3_p7/direct-compact_rf-L4-D256-lr0.0003-s0: val 0.3271
+=== [2] balanced T=3 seed=1 latent (22:54)
+runs/kt2_retry1/balanced_T3_p7/latent-compact_rf-base-aisd-L4-D256-lr0.0003-s1 | 3,230,464 params | cuda | stages [(0, 6), (1, 6), (2, 6), (3, 6)]
+  stage 0 epoch 0  val 0.9988  step 391  0.1 min
+  stage 0 epoch 1  val 1.0000  step 782  0.1 min
+  stage 0 epoch 2  val 0.9964  step 1173  0.2 min
+  stage 0 epoch 3  val 1.0000  step 1564  0.2 min
+  stage 0 epoch 4  val 1.0000  step 1955  0.3 min
+  stage 0 epoch 5  val 1.0000  step 2346  0.3 min
+  stage 1 epoch 0  val 0.9938  step 2737  0.4 min
+  stage 1 epoch 1  val 0.9994  step 3128  0.5 min
+  stage 1 epoch 2  val 1.0000  step 3519  0.6 min
+  stage 1 epoch 3  val 1.0000  step 3910  0.6 min
+  stage 1 epoch 4  val 1.0000  step 4301  0.7 min
+  stage 1 epoch 5  val 1.0000  step 4692  0.8 min
+  stage 2 epoch 0  val 0.9958  step 5083  0.9 min
+  stage 2 epoch 1  val 1.0000  step 5474  1.0 min
+  stage 2 epoch 2  val 0.9984  step 5865  1.1 min
+  stage 2 epoch 3  val 1.0000  step 6256  1.2 min
+  stage 2 epoch 4  val 1.0000  step 6647  1.3 min
+  stage 2 epoch 5  val 1.0000  step 7038  1.4 min
+  stage 3 epoch 0  val 0.9984  step 7429  1.5 min
+  stage 3 epoch 1  val 0.9976  step 7820  1.6 min
+  stage 3 epoch 2  val 1.0000  step 8211  1.7 min
+  stage 3 epoch 3  val 1.0000  step 8602  1.8 min
+  stage 3 epoch 4  val 1.0000  step 8993  1.9 min
+  stage 3 epoch 5  val 1.0000  step 9384  2.1 min
+done runs/kt2_retry1/balanced_T3_p7/latent-compact_rf-base-aisd-L4-D256-lr0.0003-s1: val 1.0000 zero-latent val 0.1429
+=== [2] balanced T=3 seed=1 pause, 24 epochs (22:56)
+runs/kt2_retry1/balanced_T3_p7/pause-compact_rf-L4-D256-lr0.0003-s1 | 3,230,464 params | cuda | stages [(None, 24)]
+  stage None epoch 0  val 0.1919  step 391  0.1 min
+  stage None epoch 1  val 0.1939  step 782  0.1 min
+  stage None epoch 2  val 0.1955  step 1173  0.2 min
+  stage None epoch 3  val 0.1927  step 1564  0.2 min
+  stage None epoch 4  val 0.1975  step 1955  0.2 min
+  stage None epoch 5  val 0.1913  step 2346  0.3 min
+  stage None epoch 6  val 0.1949  step 2737  0.3 min
+  stage None epoch 7  val 0.1971  step 3128  0.4 min
+  stage None epoch 8  val 0.1893  step 3519  0.4 min
+  stage None epoch 9  val 0.1901  step 3910  0.5 min
+  stage None epoch 10  val 0.1957  step 4301  0.5 min
+  stage None epoch 11  val 0.1963  step 4692  0.6 min
+  stage None epoch 12  val 0.1975  step 5083  0.6 min
+  stage None epoch 13  val 0.1969  step 5474  0.6 min
+  stage None epoch 14  val 0.1933  step 5865  0.7 min
+  stage None epoch 15  val 0.1953  step 6256  0.7 min
+  stage None epoch 16  val 0.1967  step 6647  0.8 min
+  stage None epoch 17  val 0.1881  step 7038  0.8 min
+  stage None epoch 18  val 0.1969  step 7429  0.9 min
+  stage None epoch 19  val 0.1941  step 7820  0.9 min
+  stage None epoch 20  val 0.1985  step 8211  1.0 min
+  stage None epoch 21  val 0.1943  step 8602  1.0 min
+  stage None epoch 22  val 0.1989  step 8993  1.1 min
+  stage None epoch 23  val 0.1927  step 9384  1.1 min
+done runs/kt2_retry1/balanced_T3_p7/pause-compact_rf-L4-D256-lr0.0003-s1: val 0.1986
+=== [2] balanced T=3 seed=1 direct (22:58)
+runs/kt2_retry1/balanced_T3_p7/direct-compact_rf-L4-D256-lr0.0003-s1 | 3,230,464 params | cuda | stages [(None, 30)]
+  stage None epoch 0  val 0.1903  step 391  0.1 min
+  stage None epoch 1  val 0.1977  step 782  0.1 min
+  stage None epoch 2  val 0.1923  step 1173  0.1 min
+  stage None epoch 3  val 0.1969  step 1564  0.2 min
+  stage None epoch 4  val 0.1949  step 1955  0.2 min
+  stage None epoch 5  val 0.1955  step 2346  0.3 min
+  stage None epoch 6  val 0.1933  step 2737  0.3 min
+  stage None epoch 7  val 0.1969  step 3128  0.4 min
+  stage None epoch 8  val 0.1735  step 3519  0.4 min
+  stage None epoch 9  val 0.1807  step 3910  0.5 min
+  stage None epoch 10  val 0.1943  step 4301  0.5 min
+  stage None epoch 11  val 0.1951  step 4692  0.5 min
+  stage None epoch 12  val 0.1953  step 5083  0.6 min
+  stage None epoch 13  val 0.1847  step 5474  0.6 min
+  stage None epoch 14  val 0.1957  step 5865  0.7 min
+  stage None epoch 15  val 0.1953  step 6256  0.7 min
+  stage None epoch 16  val 0.1953  step 6647  0.8 min
+  stage None epoch 17  val 0.1927  step 7038  0.8 min
+  stage None epoch 18  val 0.1975  step 7429  0.8 min
+  stage None epoch 19  val 0.1973  step 7820  0.9 min
+  stage None epoch 20  val 0.1989  step 8211  0.9 min
+  stage None epoch 21  val 0.1911  step 8602  1.0 min
+  stage None epoch 22  val 0.1981  step 8993  1.0 min
+  stage None epoch 23  val 0.1853  step 9384  1.1 min
+  stage None epoch 24  val 0.1875  step 9775  1.1 min
+  stage None epoch 25  val 0.1943  step 10166  1.1 min
+  stage None epoch 26  val 0.1873  step 10557  1.2 min
+  stage None epoch 27  val 0.1911  step 10948  1.2 min
+  stage None epoch 28  val 0.1931  step 11339  1.3 min
+  stage None epoch 29  val 0.1885  step 11730  1.3 min
+done runs/kt2_retry1/balanced_T3_p7/direct-compact_rf-L4-D256-lr0.0003-s1: val 0.2012
+=== [3] balanced T=3 seed=2 latent (22:59)
+runs/kt2_retry1/balanced_T3_p7/latent-compact_rf-base-aisd-L4-D256-lr0.0003-s2 | 3,230,464 params | cuda | stages [(0, 6), (1, 6), (2, 6), (3, 6)]
+  stage 0 epoch 0  val 1.0000  step 391  0.1 min
+  stage 0 epoch 1  val 1.0000  step 782  0.1 min
+  stage 0 epoch 2  val 1.0000  step 1173  0.2 min
+  stage 0 epoch 3  val 1.0000  step 1564  0.2 min
+  stage 0 epoch 4  val 1.0000  step 1955  0.3 min
+  stage 0 epoch 5  val 1.0000  step 2346  0.3 min
+  stage 1 epoch 0  val 0.9988  step 2737  0.4 min
+  stage 1 epoch 1  val 0.9966  step 3128  0.4 min
+  stage 1 epoch 2  val 0.9996  step 3519  0.5 min
+  stage 1 epoch 3  val 1.0000  step 3910  0.6 min
+  stage 1 epoch 4  val 1.0000  step 4301  0.6 min
+  stage 1 epoch 5  val 1.0000  step 4692  0.7 min
+  stage 2 epoch 0  val 0.9976  step 5083  0.8 min
+  stage 2 epoch 1  val 0.9998  step 5474  0.9 min
+  stage 2 epoch 2  val 1.0000  step 5865  1.0 min
+  stage 2 epoch 3  val 0.9996  step 6256  1.1 min
+  stage 2 epoch 4  val 1.0000  step 6647  1.2 min
+  stage 2 epoch 5  val 1.0000  step 7038  1.3 min
+  stage 3 epoch 0  val 0.9960  step 7429  1.4 min
+  stage 3 epoch 1  val 0.9908  step 7820  1.5 min
+  stage 3 epoch 2  val 0.9988  step 8211  1.6 min
+  stage 3 epoch 3  val 1.0000  step 8602  1.7 min
+  stage 3 epoch 4  val 1.0000  step 8993  1.8 min
+  stage 3 epoch 5  val 1.0000  step 9384  2.0 min
+done runs/kt2_retry1/balanced_T3_p7/latent-compact_rf-base-aisd-L4-D256-lr0.0003-s2: val 1.0000 zero-latent val 0.1471
+=== [3] balanced T=3 seed=2 pause, 24 epochs (23:01)
+runs/kt2_retry1/balanced_T3_p7/pause-compact_rf-L4-D256-lr0.0003-s2 | 3,230,464 params | cuda | stages [(None, 24)]
+  stage None epoch 0  val 0.1847  step 391  0.1 min
+  stage None epoch 1  val 0.1907  step 782  0.1 min
+  stage None epoch 2  val 0.1963  step 1173  0.1 min
+  stage None epoch 3  val 0.1985  step 1564  0.2 min
+  stage None epoch 4  val 0.1969  step 1955  0.2 min
+  stage None epoch 5  val 0.1909  step 2346  0.3 min
+  stage None epoch 6  val 0.1949  step 2737  0.3 min
+  stage None epoch 7  val 0.1971  step 3128  0.4 min
+  stage None epoch 8  val 0.2215  step 3519  0.4 min
+  stage None epoch 9  val 0.2237  step 3910  0.5 min
+  stage None epoch 10  val 0.2641  step 4301  0.5 min
+  stage None epoch 11  val 0.2903  step 4692  0.5 min
+  stage None epoch 12  val 0.3111  step 5083  0.6 min
+  stage None epoch 13  val 0.3099  step 5474  0.6 min
+  stage None epoch 14  val 0.3067  step 5865  0.7 min
+  stage None epoch 15  val 0.3147  step 6256  0.7 min
+  stage None epoch 16  val 0.3079  step 6647  0.8 min
+  stage None epoch 17  val 0.3115  step 7038  0.8 min
+  stage None epoch 18  val 0.3217  step 7429  0.9 min
+  stage None epoch 19  val 0.3217  step 7820  0.9 min
+  stage None epoch 20  val 0.3119  step 8211  0.9 min
+  stage None epoch 21  val 0.3069  step 8602  1.0 min
+  stage None epoch 22  val 0.3115  step 8993  1.0 min
+  stage None epoch 23  val 0.3163  step 9384  1.1 min
+done runs/kt2_retry1/balanced_T3_p7/pause-compact_rf-L4-D256-lr0.0003-s2: val 0.3232
+=== [3] balanced T=3 seed=2 direct (23:02)
+runs/kt2_retry1/balanced_T3_p7/direct-compact_rf-L4-D256-lr0.0003-s2 | 3,230,464 params | cuda | stages [(None, 30)]
+  stage None epoch 0  val 0.1907  step 391  0.1 min
+  stage None epoch 1  val 0.1891  step 782  0.1 min
+  stage None epoch 2  val 0.1973  step 1173  0.1 min
+  stage None epoch 3  val 0.1955  step 1564  0.2 min
+  stage None epoch 4  val 0.1957  step 1955  0.2 min
+  stage None epoch 5  val 0.1923  step 2346  0.3 min
+  stage None epoch 6  val 0.1967  step 2737  0.3 min
+  stage None epoch 7  val 0.1971  step 3128  0.4 min
+  stage None epoch 8  val 0.1941  step 3519  0.4 min
+  stage None epoch 9  val 0.1963  step 3910  0.4 min
+  stage None epoch 10  val 0.1909  step 4301  0.5 min
+  stage None epoch 11  val 0.1957  step 4692  0.5 min
+  stage None epoch 12  val 0.1939  step 5083  0.6 min
+  stage None epoch 13  val 0.1905  step 5474  0.6 min
+  stage None epoch 14  val 0.1885  step 5865  0.7 min
+  stage None epoch 15  val 0.1973  step 6256  0.7 min
+  stage None epoch 16  val 0.1905  step 6647  0.7 min
+  stage None epoch 17  val 0.1939  step 7038  0.8 min
+  stage None epoch 18  val 0.1953  step 7429  0.8 min
+  stage None epoch 19  val 0.1895  step 7820  0.9 min
+  stage None epoch 20  val 0.1965  step 8211  0.9 min
+  stage None epoch 21  val 0.1941  step 8602  1.0 min
+  stage None epoch 22  val 0.1967  step 8993  1.0 min
+  stage None epoch 23  val 0.2011  step 9384  1.0 min
+  stage None epoch 24  val 0.2173  step 9775  1.1 min
+  stage None epoch 25  val 0.2265  step 10166  1.1 min
+  stage None epoch 26  val 0.2365  step 10557  1.2 min
+  stage None epoch 27  val 0.2391  step 10948  1.2 min
+  stage None epoch 28  val 0.2551  step 11339  1.3 min
+  stage None epoch 29  val 0.2523  step 11730  1.3 min
+done runs/kt2_retry1/balanced_T3_p7/direct-compact_rf-L4-D256-lr0.0003-s2: val 0.2583
+p=7 balanced T=3 L=4 trace=compact_rf  ->  PASS
+  latent       1.000 [1.00,1.00] (1.000 1.000 1.000)              need >= 0.900  ok
+  zero-latent  0.144 [0.14,0.15] (0.143 0.143 0.147)              need <= 0.243  ok
+  pause        0.262 [0.11,0.42] (0.263 0.199 0.323)              need <= 0.362  ok
+  direct       0.262 [0.11,0.42] (0.327 0.201 0.258)
+  latent epochs [24, 24, 24], pause epochs [24, 24, 24]
+p=7 balanced T=7 L=4 trace=compact_rf  ->  fail
+  latent       0.525 [0.00,1.00] (1.000 0.274 0.301)              need >= 0.900  NO
+  zero-latent  0.154 [0.12,0.19] (0.146 0.172 0.144)              need <= 0.243  ok
+  pause        0.201 [0.19,0.21] (0.205 0.194 0.203)              need <= 0.296  ok
+  direct       0.196 [0.19,0.20] (0.197 0.196 0.195)
+  latent epochs [48, 48, 48], pause epochs [48, 48, 48]
+p=7 chain T=4 L=4 trace=compact_rf  ->  PASS
+  latent       0.996 [0.98,1.00] (1.000 0.989 1.000)              need >= 0.900  ok
+  zero-latent  0.142 [0.14,0.14] (0.143 0.142 0.142)              need <= 0.243  ok
+  pause        0.241 [0.22,0.26] (0.250 0.238 0.235)              need <= 0.373  ok
+  direct       0.273 [0.12,0.43] (0.237 0.344 0.236)
+  latent epochs [30, 30, 30], pause epochs [30, 30, 30]
+p=7 chain T=8 L=4 trace=compact_rf  ->  fail
+  latent       0.552 [0.00,1.00] (1.000 0.364 0.292)              need >= 0.900  NO
+  zero-latent  0.144 [0.13,0.15] (0.143 0.140 0.148)              need <= 0.243  ok
+  pause        0.232 [0.23,0.24] (0.231 0.235 0.230)              need <= 0.329  ok
+  direct       0.229 [0.22,0.24] (0.227 0.235 0.226)
+  latent epochs [54, 54, 54], pause epochs [54, 54, 54]
+
+all numbers are validation accuracy; mean [95% t-interval over seeds] (per-seed values)
+chain cell passing: yes; balanced T=7 passing: no; fallback balanced T=3 passing: yes
+KILL TEST 2: PASS
